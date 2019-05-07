@@ -1,26 +1,26 @@
 {
-  "_from": "scratch-translate-extension-languages@0.0.20180521154850",
-  "_id": "scratch-translate-extension-languages@0.0.20180521154850",
+  "_from": "scratch-translate-extension-languages@0.0.20181203165724",
+  "_id": "scratch-translate-extension-languages@0.0.20181203165724",
   "_inBundle": false,
-  "_integrity": "sha512-aR1Fd55jOzpIXaeh976REALsq1evuPaU323j1ZLmWRgeEySAY28Yd/mVCyJJ60ZB9vw8i/ngL96ILKuECAL8Kg==",
+  "_integrity": "sha512-TwBR6T7dmqNlMwBTYQ5oPVjlunsvlWNZzmI+QAquXDEDQQmoyz4o44ubOxsptdc/LgxmdZFY8EYbzJtuCNK5RQ==",
   "_location": "/scratch-translate-extension-languages",
   "_phantomChildren": {},
   "_requested": {
     "type": "version",
     "registry": true,
-    "raw": "scratch-translate-extension-languages@0.0.20180521154850",
+    "raw": "scratch-translate-extension-languages@0.0.20181203165724",
     "name": "scratch-translate-extension-languages",
     "escapedName": "scratch-translate-extension-languages",
-    "rawSpec": "0.0.20180521154850",
+    "rawSpec": "0.0.20181203165724",
     "saveSpec": null,
-    "fetchSpec": "0.0.20180521154850"
+    "fetchSpec": "0.0.20181203165724"
   },
   "_requiredBy": [
     "#USER"
   ],
-  "_resolved": "https://registry.npmjs.org/scratch-translate-extension-languages/-/scratch-translate-extension-languages-0.0.20180521154850.tgz",
-  "_shasum": "ffb5d2c113cdaf90e869f50808a30ee7dba5ba79",
-  "_spec": "scratch-translate-extension-languages@0.0.20180521154850",
+  "_resolved": "https://registry.npmjs.org/scratch-translate-extension-languages/-/scratch-translate-extension-languages-0.0.20181203165724.tgz",
+  "_shasum": "2ac2b488cdc9ac89fa2dc1041ea395f8e04e08d8",
+  "_spec": "scratch-translate-extension-languages@0.0.20181203165724",
   "_where": "C:\\Users\\ADMIN\\Documents\\QUANDO Python系\\scratch-translation\\20180516210736",
   "author": {
     "name": "Massachusetts Institute of Technology"
@@ -51,5 +51,5 @@
     "test": "npm run test:lint && npm run build",
     "test:lint": "eslint ."
   },
-  "version": "0.0.20180521154850"
+  "version": "0.0.20181203165724"
 }

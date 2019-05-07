@@ -13,5 +13,5 @@ _Note that to properly format `GOOGLE_PRIVATE_KEY` in an environment variable,
 newlines should be escaped properly:_
 
 ```bash
-export PRIVATE_KEY=$'-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----'
+export GOOGLE_PRIVATE_KEY=$'-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----'
 ```
