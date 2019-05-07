@@ -1,26 +1,26 @@
 {
-  "_from": "scratch-translate-extension-languages@0.0.20181205140428",
-  "_id": "scratch-translate-extension-languages@0.0.20181205140428",
+  "_from": "scratch-translate-extension-languages@0.0.20190416132834",
+  "_id": "scratch-translate-extension-languages@0.0.20190416132834",
   "_inBundle": false,
-  "_integrity": "sha512-vNE8LSIrJl5cCCS1yrR6wivtFhuJmHFhbZnTrkt/E3BfyqMBJgpqJTtYfi+up1sorc7AixhpHTARE6/t3D//MA==",
+  "_integrity": "sha512-mRDRBqbwf52DSbR9tJLRw2/MIUoFncNaqTKkVjdDJcIRm5niTtKtFDn2BlyQunAAkUVdswncS0t1wpf155lQGw==",
   "_location": "/scratch-translate-extension-languages",
   "_phantomChildren": {},
   "_requested": {
     "type": "version",
     "registry": true,
-    "raw": "scratch-translate-extension-languages@0.0.20181205140428",
+    "raw": "scratch-translate-extension-languages@0.0.20190416132834",
     "name": "scratch-translate-extension-languages",
     "escapedName": "scratch-translate-extension-languages",
-    "rawSpec": "0.0.20181205140428",
+    "rawSpec": "0.0.20190416132834",
     "saveSpec": null,
-    "fetchSpec": "0.0.20181205140428"
+    "fetchSpec": "0.0.20190416132834"
   },
   "_requiredBy": [
     "#USER"
   ],
-  "_resolved": "https://registry.npmjs.org/scratch-translate-extension-languages/-/scratch-translate-extension-languages-0.0.20181205140428.tgz",
-  "_shasum": "27746e4d628810c7b35f7e8caa5963be5349a8f9",
-  "_spec": "scratch-translate-extension-languages@0.0.20181205140428",
+  "_resolved": "https://registry.npmjs.org/scratch-translate-extension-languages/-/scratch-translate-extension-languages-0.0.20190416132834.tgz",
+  "_shasum": "988eb4a6ee7abcaec8077ad8519a7b4236242d67",
+  "_spec": "scratch-translate-extension-languages@0.0.20190416132834",
   "_where": "C:\\Users\\ADMIN\\Documents\\QUANDO Python系\\scratch-translation\\20180516210736",
   "author": {
     "name": "Massachusetts Institute of Technology"
@@ -36,7 +36,10 @@
     "async": "2.6.0",
     "babel-eslint": "8.2.3",
     "eslint": "^4.7.1",
-    "eslint-config-scratch": "^5.0.0"
+    "eslint-config-scratch": "^5.0.0",
+    "nock": "^10.0.6",
+    "scratch-l10n": "3.1.20190328114324",
+    "tap": "^12.6.1"
   },
   "homepage": "https://github.com/LLK/scratch-translate-extension-languages#readme",
   "license": "BSD-3-Clause",
@@ -48,8 +51,10 @@
   },
   "scripts": {
     "build": "node index.js > languages.json",
-    "test": "npm run test:lint && npm run build",
-    "test:lint": "eslint ."
+    "test": "npm run test:lint && npm run test:tap && npm run build",
+    "test:coverage": "tap test/integration/*.js --coverage --coverage-report=lcov",
+    "test:lint": "eslint .",
+    "test:tap": "tap ./test/integration/*.js"
   },
-  "version": "0.0.20181205140428"
+  "version": "0.0.20190416132834"
 }

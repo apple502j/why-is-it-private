@@ -1,5 +1,6 @@
 const async = require('async');
 const Translate = require('@google-cloud/translate');
+const locales = require('scratch-l10n');
 const client = new Translate({
     credentials: {
         private_key: process.env.GOOGLE_PRIVATE_KEY,
@@ -7,13 +8,31 @@ const client = new Translate({
     }
 });
 
-const SUPPORTED_LOCALES = ['ab', 'ar', 'an', 'as', 'id', 'ms', 'be', 'bg',
-    'ca', 'cs', 'cy', 'da', 'de', 'yu', 'et', 'el', 'en', 'eo', 'es', 'eu',
-    'fa', 'fr', 'fu', 'ga', 'gd', 'gl', 'ko', 'hy', 'he', 'hi', 'hr', 'zu',
-    'is', 'it', 'kn', 'rw', 'ht', 'ku', 'la', 'lv', 'lt', 'mk', 'hu', 'ml',
-    'mt', 'ca', 'mr', 'mn', 'my', 'nl', 'ja', 'nb', 'nn', 'uz', 'th', 'pl',
-    'pt', 'pt', 'ro', 'ru', 'sc', 'sq', 'sk', 'sl', 'sr', 'fi', 'sv', 'te',
-    'vi', 'tr', 'uk', 'zh', 'zh-cn', 'zh-tw'];
+// List of languages that the translate extension menu used to have. The extension
+// launched with an outdated list of Scratch languages. This list is used to keep backwards
+// compatibility with any projects that may have blocks with these selected in them before
+// we removed them from the menu.
+const PREVIOUSLY_SUPPORTED_LIST = ['ab', 'ms', 'be', 'eo', 'hy', 'hi', 'kn',
+    'ht', 'ku', 'la', 'mk', 'ml', 'mt', 'mr', 'mn', 'my', 'nn', 'sq', 'te', 'uz'];
+
+const SUPPORTED_LOCALES = Object.keys(locales.default).concat(PREVIOUSLY_SUPPORTED_LIST);
+
+// Scratch and Google translate have different language codes for some languages. These
+// maps are used to convert between them.
+const scratchToGoogleMap = {
+    'zh-cn': 'zh',
+    'nb': 'no',
+    'he': 'iw',
+    'es-419': 'es',
+    'pt-br': 'pt',
+    'ja-hira': 'ja'
+};
+
+// Construct the reverse map of the scratch to google mapping.
+const googleToScratchMap = Object.keys(scratchToGoogleMap).reduce((mem, key) => {
+    mem[scratchToGoogleMap[key]] = key;
+    return mem;
+}, {});
 
 /**
  * Builds a map from translated language name to language code. e.g.
@@ -50,36 +69,96 @@ var getLanguageList = function (acc, langCode, index, callback) {
     client.getLanguages(langCode, function (err, translateObj) {
         if (err) {
             // Invalid languages happen since Scratch supports some that Google
-            // translate does not.
+            // translate does not.  For ones where there is a mismatch in langauge codes,
+            // .e.g. es-419 and cs, we'll add them later.
             if (err.code === 400 && err.message.indexOf('language is invalid')) {
-                acc[langCode] = [];
                 return callback();
             }
             // Avoid unhandled rejection, and allow exiting with error status
             return async.nextTick(callback, err);
         }
         const result = [];
-        // Only include langauges that are supported by Scratch.
+        // Build up the list of languages (code and name) that we can translate to.
         for (let i in translateObj) {
             if (SUPPORTED_LOCALES.indexOf(translateObj[i].code.toLowerCase()) !== -1) {
                 // Lowercase all the language codes for ease of comparison later.
                 translateObj[i].code = translateObj[i].code.toLowerCase();
                 result.push(translateObj[i]);
+            } else if (googleToScratchMap[translateObj[i].code.toLowerCase()]) {
+                // If this langauge code is a Google translate one, look up the scratch
+                // version and put that in the result instead.
+                let copy = Object.assign({}, translateObj[i]);
+                copy.code = googleToScratchMap[translateObj[i].code].toLowerCase();
+                result.push(copy);
             }
         }
-        acc[langCode] = result;
+        acc[langCode.toLowerCase()] = result;
+        // If there's a language code that differs, e.g. scratch has es-419, but
+        // Google Translate has es, add that to the map as well.
+        if (googleToScratchMap[langCode.toLowerCase()]) {
+            acc[googleToScratchMap[langCode.toLowerCase()].toLowerCase()] = result;
+        }
         return callback();
     });
 };
 
-async.transform(SUPPORTED_LOCALES, {}, getLanguageList,
-    function (err, result) {
-        if (err) {
-            throw new Error(err);
+/**
+ * Removes languages from the previously supported list from the menu map so they
+ * don't show up in the translate menu's list.
+ * @param {object} menuMap A map of language code to an object that contains the
+ *   language code list of all
+ */
+var removePreviouslySupported = function (menuMap) {
+    const codes = Object.keys(menuMap);
+    for (let i = 0; i < codes.length; ++i) {
+        const filtered = menuMap[codes[i]].filter(function (langInfo) {
+            return PREVIOUSLY_SUPPORTED_LIST.indexOf(langInfo.code) === -1;
+        });
+        menuMap[codes[i]] = filtered;
+    }
+
+    for (let i = 0; i < PREVIOUSLY_SUPPORTED_LIST.length; ++i) {
+        if (menuMap[PREVIOUSLY_SUPPORTED_LIST[i]]) {
+            delete menuMap[PREVIOUSLY_SUPPORTED_LIST[i]];
         }
-        // Result is a single element list containing a map from langauge code
-        // to the lang code/name pairs we can translate to. e.g.
-        const nameToLanguageCode = buildNameToCodeMap(result);
-        const finalObject = {menuMap: result, nameMap: nameToLanguageCode};
-        process.stdout.write(JSON.stringify(finalObject));
+    }
+};
+
+/**
+ * Builds up an object containing information about language codes and language names.
+ * menuMap is a mapping from a scratch language code to a list of languges to show in the Google Translate menu.
+ * nameMap is a mapping from language names (translated into lots of lanuages) to language code.
+ * scratchToGoogleMap is a mapping from Scratch language codes to Google langauge codes.
+ * previouslySupported is a list of language codes that we used to put in the language list for the translate block
+     but no longer do.
+ * @param {function} callback Function called with the result when building all the maps finishes.
+ */
+const generateMapping = module.exports = function (callback) {
+    async.transform(SUPPORTED_LOCALES, {}, getLanguageList,
+        function (err, result) {
+            if (err) {
+                throw new Error(err);
+            }
+            // Result is a single element list containing a map from langauge code
+            // to the lang code/name pairs we can translate to. e.g.
+            const nameToLanguageCode = buildNameToCodeMap(result);
+            // After we build the language code name map, we remove languages that used
+            // to be in the list but aren't now.  We want those languges to be in the name
+            // map so that if someone drops a block into the menu it still works.
+            // For example, a block with value esperanto dropped into the language menu should
+            // continue working even though esperanto isn't in the list anymore.
+            removePreviouslySupported(result);
+            const finalObject = {menuMap: result,
+                nameMap: nameToLanguageCode,
+                scratchToGoogleMap: scratchToGoogleMap,
+                previouslySupported: PREVIOUSLY_SUPPORTED_LIST
+            };
+            callback(finalObject);
+        });
+};
+
+if (require.main === module) {
+    generateMapping(result => {
+        process.stdout.write(JSON.stringify(result));
     });
+}
