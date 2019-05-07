@@ -13,7 +13,7 @@ const SUPPORTED_LOCALES = ['ab', 'ar', 'an', 'as', 'id', 'ms', 'be', 'bg',
     'is', 'it', 'kn', 'rw', 'ht', 'ku', 'la', 'lv', 'lt', 'mk', 'hu', 'ml',
     'mt', 'ca', 'mr', 'mn', 'my', 'nl', 'ja', 'nb', 'nn', 'uz', 'th', 'pl',
     'pt', 'pt', 'ro', 'ru', 'sc', 'sq', 'sk', 'sl', 'sr', 'fi', 'sv', 'te',
-    'vi', 'tr', 'uk', 'zh', 'zh'];
+    'vi', 'tr', 'uk', 'zh', 'zh-cn', 'zh-tw'];
 
 /**
  * Builds a map from translated language name to language code. e.g.
@@ -28,7 +28,8 @@ var buildNameToCodeMap = function (languageMap) {
     let codes = Object.keys(languageMap);
     for (let i = 0; i < codes.length; ++i) {
         for (let j = 0; j < languageMap[codes[i]].length; ++j) {
-            nameMap[languageMap[codes[i]][j].name.toLowerCase()] = languageMap[codes[i]][j].code;
+            // Lowercase all the language codes for ease of comparison later.
+            nameMap[languageMap[codes[i]][j].name.toLowerCase()] = languageMap[codes[i]][j].code.toLowerCase();
         }
     }
     // Add the Hiragana version of Japanese in Japanese (nihongo) by hand since Google Translate
@@ -60,7 +61,9 @@ var getLanguageList = function (acc, langCode, index, callback) {
         const result = [];
         // Only include langauges that are supported by Scratch.
         for (let i in translateObj) {
-            if (SUPPORTED_LOCALES.indexOf(translateObj[i].code) !== -1) {
+            if (SUPPORTED_LOCALES.indexOf(translateObj[i].code.toLowerCase()) !== -1) {
+                // Lowercase all the language codes for ease of comparison later.
+                translateObj[i].code = translateObj[i].code.toLowerCase();
                 result.push(translateObj[i]);
             }
         }
