@@ -54,7 +54,8 @@ var getLanguageList = function (acc, langCode, index, callback) {
                 acc[langCode] = [];
                 return callback();
             }
-            return callback(err);
+            // Avoid unhandled rejection, and allow exiting with error status
+            return async.nextTick(callback, err);
         }
         const result = [];
         // Only include langauges that are supported by Scratch.
