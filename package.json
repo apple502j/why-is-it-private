@@ -1,0 +1,55 @@
+{
+  "_from": "scratch-translate-extension-languages@0.0.20180516210736",
+  "_id": "scratch-translate-extension-languages@0.0.20180516210736",
+  "_inBundle": false,
+  "_integrity": "sha512-YpBee3jV7QOo1L+RgvF2xS1n8/Mra5g/8zLmtukiOPuQxxEFMIC2tT0sjQS9XRUaor9+sCzop+MJJGmRxzdkMQ==",
+  "_location": "/scratch-translate-extension-languages",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "scratch-translate-extension-languages@0.0.20180516210736",
+    "name": "scratch-translate-extension-languages",
+    "escapedName": "scratch-translate-extension-languages",
+    "rawSpec": "0.0.20180516210736",
+    "saveSpec": null,
+    "fetchSpec": "0.0.20180516210736"
+  },
+  "_requiredBy": [
+    "#USER"
+  ],
+  "_resolved": "https://registry.npmjs.org/scratch-translate-extension-languages/-/scratch-translate-extension-languages-0.0.20180516210736.tgz",
+  "_shasum": "5d7508e4e13bf9dea840c8392db0bbd920814b6e",
+  "_spec": "scratch-translate-extension-languages@0.0.20180516210736",
+  "_where": "C:\\Users\\ADMIN\\Documents\\QUANDO Python系\\scratch-translation\\20180516210736",
+  "author": {
+    "name": "Massachusetts Institute of Technology"
+  },
+  "bugs": {
+    "url": "https://github.com/LLK/scratch-translate-extension-languages/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "Languages used by the Scratch 3.0 Translate extension",
+  "devDependencies": {
+    "@google-cloud/translate": "1.1.0",
+    "async": "2.6.0",
+    "babel-eslint": "8.2.3",
+    "eslint": "^4.7.1",
+    "eslint-config-scratch": "^5.0.0"
+  },
+  "homepage": "https://github.com/LLK/scratch-translate-extension-languages#readme",
+  "license": "BSD-3-Clause",
+  "main": "languages.json",
+  "name": "scratch-translate-extension-languages",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/LLK/scratch-translate-extension-languages.git"
+  },
+  "scripts": {
+    "build": "node index.js > languages.json",
+    "test": "npm run test:lint && npm run build",
+    "test:lint": "eslint ."
+  },
+  "version": "0.0.20180516210736"
+}
