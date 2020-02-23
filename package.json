@@ -1,27 +1,28 @@
 {
-  "_from": "scratch-translate-extension-languages@0.0.20190416132834",
-  "_id": "scratch-translate-extension-languages@0.0.20190416132834",
+  "_from": "scratch-translate-extension-languages",
+  "_id": "scratch-translate-extension-languages@0.0.20191118205314",
   "_inBundle": false,
-  "_integrity": "sha512-mRDRBqbwf52DSbR9tJLRw2/MIUoFncNaqTKkVjdDJcIRm5niTtKtFDn2BlyQunAAkUVdswncS0t1wpf155lQGw==",
+  "_integrity": "sha512-r0lvpgQjPMjbhI2wROrgoXzBhCvWJdkbAqJMfl2CdNqrwBpUXqLvNNtI3VtNLPJAcp9VfxEylkU9lVZ0gvU46Q==",
   "_location": "/scratch-translate-extension-languages",
   "_phantomChildren": {},
   "_requested": {
-    "type": "version",
+    "type": "tag",
     "registry": true,
-    "raw": "scratch-translate-extension-languages@0.0.20190416132834",
+    "raw": "scratch-translate-extension-languages",
     "name": "scratch-translate-extension-languages",
     "escapedName": "scratch-translate-extension-languages",
-    "rawSpec": "0.0.20190416132834",
+    "rawSpec": "",
     "saveSpec": null,
-    "fetchSpec": "0.0.20190416132834"
+    "fetchSpec": "latest"
   },
   "_requiredBy": [
-    "#USER"
+    "#USER",
+    "/"
   ],
-  "_resolved": "https://registry.npmjs.org/scratch-translate-extension-languages/-/scratch-translate-extension-languages-0.0.20190416132834.tgz",
-  "_shasum": "988eb4a6ee7abcaec8077ad8519a7b4236242d67",
-  "_spec": "scratch-translate-extension-languages@0.0.20190416132834",
-  "_where": "C:\\Users\\ADMIN\\Documents\\QUANDO Python系\\scratch-translation\\20180516210736",
+  "_resolved": "https://registry.npmjs.org/scratch-translate-extension-languages/-/scratch-translate-extension-languages-0.0.20191118205314.tgz",
+  "_shasum": "9f781cc0c89785faba8ae86775a4915225676284",
+  "_spec": "scratch-translate-extension-languages",
+  "_where": "C:\\Users\\user\\AppData\\Local\\Temp\\test",
   "author": {
     "name": "Massachusetts Institute of Technology"
   },
@@ -33,7 +34,7 @@
   "description": "Languages used by the Scratch 3.0 Translate extension",
   "devDependencies": {
     "@google-cloud/translate": "1.1.0",
-    "async": "2.6.0",
+    "async": "3.0.1",
     "babel-eslint": "8.2.3",
     "eslint": "^4.7.1",
     "eslint-config-scratch": "^5.0.0",
@@ -56,5 +57,5 @@
     "test:lint": "eslint .",
     "test:tap": "tap ./test/integration/*.js"
   },
-  "version": "0.0.20190416132834"
+  "version": "0.0.20191118205314"
 }

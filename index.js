@@ -17,6 +17,23 @@ const PREVIOUSLY_SUPPORTED_LIST = ['ab', 'ms', 'be', 'eo', 'hy', 'hi', 'kn',
 
 const SUPPORTED_LOCALES = Object.keys(locales.default).concat(PREVIOUSLY_SUPPORTED_LIST);
 
+// Names of spoken languages, for use by the Text to Speech extension.
+const SPOKEN_LANGUAGES = {
+    'zh-cn': 'Chinese (Mandarin)', // distinct from the written "chinese (simplified)" and "chinese (traditional)"
+    'hi': 'Hindi', // available in text to speech but not yet in supported_locales
+    'pt-br': 'Portuguese (Brazilian)', // not a separate entry in the translate extension menu
+    'es-419': 'Spanish (Latin American)' // not a separate entry the translate extension menu
+};
+const spokenLanguageKeys = Object.keys(SPOKEN_LANGUAGES);
+const spokenLanguageNamesEn = Object.values(SPOKEN_LANGUAGES);
+
+// We need to provide a custom translation into Chinese of the name for the spoken
+// version of Chinese we are providing.
+const CUSTOM_NAMES_FOR_MANDARIN = {
+    'zh-cn': '中文',
+    'zh-tw': '中文'
+};
+
 // Scratch and Google translate have different language codes for some languages. These
 // maps are used to convert between them.
 const scratchToGoogleMap = {
@@ -95,7 +112,8 @@ var getLanguageList = function (acc, langCode, index, callback) {
         acc[langCode.toLowerCase()] = result;
         // If there's a language code that differs, e.g. scratch has es-419, but
         // Google Translate has es, add that to the map as well.
-        if (googleToScratchMap[langCode.toLowerCase()]) {
+        if (googleToScratchMap[langCode.toLowerCase()] &&
+          !acc[googleToScratchMap[langCode.toLowerCase()].toLowerCase()]) {
             acc[googleToScratchMap[langCode.toLowerCase()].toLowerCase()] = result;
         }
         return callback();
@@ -125,36 +143,155 @@ var removePreviouslySupported = function (menuMap) {
 };
 
 /**
+ * Fix a problem with some translations of language names containing parentheses,
+ * where the open paren is missing. If the final character is a close paren, and
+ * there is no open paren, add an open paren after the first space.
+ * @param {string} item The string to fix
+ * @return {string} the fixed string
+ */
+var fixParens = function (item) {
+    const endsWithCloseParen = item[item.length - 1] === ')';
+    const hasOpenParen = item.includes('(');
+    if (endsWithCloseParen && !hasOpenParen){
+        let fixed = item.split(' ');
+        if (fixed.length > 1) {
+            fixed[1] = '(' + fixed[1];
+            item = fixed.join(' ');
+        }
+    }
+    return item;
+};
+
+/**
+* Gets the translations into a particular language of the names of a set of spoken languages,
+* and adds these to an accumulator object.
+* @param {object} acc Accumulates results from the set of transform calls.
+* @param {string} langCode The language code to to translate into.
+* @param {number} index The index into the list of langauges we're looking up.
+* @param {function} callback The function which is called after all the iteratee functions have finished.
+*/
+var translateSpokenLanguageNames = function (acc, langCode, index, callback) {
+    const options = {
+        from: 'en',
+        to: langCode
+    };
+    client.translate(spokenLanguageNamesEn, options,
+        function (err, translation) {
+            if (err) {
+                // Invalid languages happen since Scratch supports some that Google
+                // translate does not.  For ones where there is a mismatch in langauge codes,
+                // .e.g. es-419 and cs, we'll add them later.
+                if (err.code === 400 && err.message.indexOf('language is invalid')) {
+                    return callback();
+                }
+                // Avoid unhandled rejection, and allow exiting with error status
+                return async.nextTick(callback, err);
+            }
+            const translatedSpokenLanguageNames = translation.map((item, i) => {
+                item = fixParens(item);
+                return {
+                    code: spokenLanguageKeys[i],
+                    name: item
+                };
+            });
+            acc[langCode.toLowerCase()] = translatedSpokenLanguageNames;
+            return callback();
+        });
+};
+
+/**
+ * Add entries to the spoken languages map for Scratch-specific language codes.
+ * @param {object} spokenLanguages An object containing names of spoken languages
+ *  translated into other languages.
+ */
+var addScratchEntriesToSpokenLanguages = function (spokenLanguages) {
+    Object.keys(scratchToGoogleMap).forEach(key => {
+        if (!spokenLanguages[key]) {
+            const googleKey = scratchToGoogleMap[key];
+            if (googleKey) {
+                spokenLanguages[key] = spokenLanguages[googleKey];
+            }
+        }
+    });
+};
+
+/**
+ * Modify the entries in the spoken languages map for Chinese languages, to use
+ * custom names for spoken Chinese (instead of the google translate version).
+ * @param {object} spokenLanguages An object containing names of spoken languages
+ *  translated into other languages.
+ */
+var useCustomChineseNames = function (spokenLanguages) {
+    Object.keys(CUSTOM_NAMES_FOR_MANDARIN).forEach(key => {
+        if (spokenLanguages[key]) {
+            const customName = CUSTOM_NAMES_FOR_MANDARIN[key];
+            const langObj = spokenLanguages[key];
+            const cnObj = langObj.find(lang => lang.code === 'zh-cn');
+            if (cnObj) {
+                cnObj.name = customName;
+            }
+        }
+    });
+};
+
+/**
  * Builds up an object containing information about language codes and language names.
  * menuMap is a mapping from a scratch language code to a list of languges to show in the Google Translate menu.
  * nameMap is a mapping from language names (translated into lots of lanuages) to language code.
  * scratchToGoogleMap is a mapping from Scratch language codes to Google langauge codes.
  * previouslySupported is a list of language codes that we used to put in the language list for the translate block
      but no longer do.
+ * spokenLanguages is a mapping from scratch language code to a list of spoken language names that are distinct from
+ *   written language names, for use in the Text to Speech extension's language menu.
  * @param {function} callback Function called with the result when building all the maps finishes.
  */
 const generateMapping = module.exports = function (callback) {
-    async.transform(SUPPORTED_LOCALES, {}, getLanguageList,
-        function (err, result) {
-            if (err) {
-                throw new Error(err);
+
+    // the spokenLanguageNameMap is generated by translation requests, but we need
+    // to seed the English data, because the translation from English to English does
+    // not provide any results. Only this one name is needed, because it is the only
+    // name in English that differs from the names of written language provided in the menuMap.
+    const spokenLanguageNameMap = {
+        en: [
+            {
+                code: 'zh-cn',
+                name: 'Chinese (Mandarin)'
             }
-            // Result is a single element list containing a map from langauge code
-            // to the lang code/name pairs we can translate to. e.g.
-            const nameToLanguageCode = buildNameToCodeMap(result);
-            // After we build the language code name map, we remove languages that used
-            // to be in the list but aren't now.  We want those languges to be in the name
-            // map so that if someone drops a block into the menu it still works.
-            // For example, a block with value esperanto dropped into the language menu should
-            // continue working even though esperanto isn't in the list anymore.
-            removePreviouslySupported(result);
-            const finalObject = {menuMap: result,
-                nameMap: nameToLanguageCode,
-                scratchToGoogleMap: scratchToGoogleMap,
-                previouslySupported: PREVIOUSLY_SUPPORTED_LIST
-            };
-            callback(finalObject);
-        });
+        ]
+    };
+
+    // First, translate the spoken language names into each language.
+    async.transform(
+        SUPPORTED_LOCALES, spokenLanguageNameMap, translateSpokenLanguageNames
+    ).then(spokenLanguages => {
+
+        addScratchEntriesToSpokenLanguages(spokenLanguages);
+        useCustomChineseNames(spokenLanguages);
+
+        // Then, generate the full menuMap
+        async.transform(SUPPORTED_LOCALES, {}, getLanguageList,
+            function (err, result) {
+                if (err) {
+                    throw new Error(err);
+                }
+                // Result is a single element list containing a map from langauge code
+                // to the lang code/name pairs we can translate to. e.g.
+                const nameToLanguageCode = buildNameToCodeMap(result);
+                // After we build the language code name map, we remove languages that used
+                // to be in the list but aren't now.  We want those languges to be in the name
+                // map so that if someone drops a block into the menu it still works.
+                // For example, a block with value esperanto dropped into the language menu should
+                // continue working even though esperanto isn't in the list anymore.
+                removePreviouslySupported(result);
+                const finalObject = {menuMap: result,
+                    nameMap: nameToLanguageCode,
+                    scratchToGoogleMap: scratchToGoogleMap,
+                    previouslySupported: PREVIOUSLY_SUPPORTED_LIST,
+                    spokenLanguages: spokenLanguages
+                };
+                callback(finalObject);
+            });
+    });
 };
 
 if (require.main === module) {

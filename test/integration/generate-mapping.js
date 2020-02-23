@@ -10,7 +10,7 @@ test('spec', t => {
 test('object.shape', t => {
     generateMapping(result => {
         t.same(Object.keys(result),
-            ['menuMap', 'nameMap', 'scratchToGoogleMap', 'previouslySupported']);
+            ['menuMap', 'nameMap', 'scratchToGoogleMap', 'previouslySupported', 'spokenLanguages']);
         t.end();
     });
 });
@@ -43,10 +43,18 @@ test('Test menu and name map contain correct items', t => {
         .query({target: /.*/})
         .reply(200, gzipReply, headers);
 
+    /* max-len eslint-disable-next-line quotes*/
+    /* eslint-disable-next-line */
+    const translateReply = ["1f","8b","08000000000002ffabe65250504a492c4954b252a806b281bc92a2c4bce29cc492ccfcbc62a068345854012a8ba222352524b5a204a846c937312f25b128334f4103c6d25482aaafd521c6008fccbc944cd2b404e4179594a667162b683815251667e69068637041625e657e8e8286636e6a516676a2820fd0cb48ce06d3b15c20562d1700f256f7c127010000"];
+    nock('https://translation.googleapis.com:443')
+        .persist()
+        .post('/language/translate/v2/', /.*/)
+        .reply(200, translateReply, headers);
+
     generateMapping(result => {
         t.type(result, 'object', 'result is an object');
         t.same(Object.keys(result),
-            ['menuMap', 'nameMap', 'scratchToGoogleMap', 'previouslySupported']);
+            ['menuMap', 'nameMap', 'scratchToGoogleMap', 'previouslySupported', 'spokenLanguages']);
 
         t.equal(Object.keys(result.menuMap).length, 52);
         t.equal(Object.keys(result.nameMap).length, 67);
@@ -74,6 +82,24 @@ test('Test menu and name map contain correct items', t => {
         // and is currently supported by both.
         t.equals(result.menuMap.de.length, 48, 'German list has 48 items in it');
         t.equals(result.nameMap.german, 'de', 'Name map contains german.');
+
+        // Test the spoken languages map
+        t.equal(Object.keys(result.spokenLanguages).length, 72);
+        // Check for unmatched parens
+        let names = [];
+        for (let i in result.spokenLanguages) {
+            names.push(...(result.spokenLanguages[i].map(o => o.name)));
+        }
+        let unmatched = false;
+        names.forEach(name => {
+            let count = 0;
+            count += (name.match(/\(/g) || []).length;
+            count += (name.match(/\)/g) || []).length;
+            if ((count % 2) === 1) {
+                unmatched = true;
+            }
+        });
+        t.notOk(unmatched, 'no unmatched parens');
 
         t.end();
     });
